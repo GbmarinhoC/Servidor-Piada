@@ -5,39 +5,56 @@ import java.io.*;
 
 public class KKMultiServerThread extends Thread {
     private Socket socket = null;
-    //Na hora da Criação criamos um method de criação
+
     public KKMultiServerThread(Socket socket) {
         super("KKMultiServerThread");
         this.socket = socket;
     }
     
     public void run() {
-    	
         try (
-        	//Foi criado um PrintWriter para mandar mensagem para o cliente
             PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
-        		
-        	//Foi criado um jeito de ler oque é enviado para o cliente
-            BufferedReader in = new BufferedReader(
-                new InputStreamReader(
-                    socket.getInputStream()));
+            BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         ) {
-            String inputLine, outputLine;
-            // criado para administrar as mensagens que sao enviadas e recebidas
+            String outputLine;
             KnockKnockProtocol kkp = new KnockKnockProtocol();
-            
-            //é retornado oque deve ser escrito na tela do cliente dependendo de que parte do processo ele estiver
+            int verifica = 0;
             outputLine = kkp.processInput(null);
             out.println(outputLine);
 
-            //Fica fazendo as piadas e perguntas ate que o output retornado do KnockKnock 
-            while ((inputLine = in.readLine()) != null) {
+            while (true) {
+                // Configura o tempo de espera para 5 segundos (5000 milissegundos)
+                socket.setSoTimeout(8000);
+                
+                String inputLine = null;
+                try {
+                    inputLine = in.readLine();
+                } catch (SocketTimeoutException timeoutException) {
+                	if(verifica < 2 ) {
+                		out.println("Tem como você responder? estou tentando fazer a porra de uma piada!!");
+                		verifica++;
+                	}else {
+                		out.println("Parece que voce não quer ouvir uma piada :(");
+                		out.println("Vamos deixar outro entrar para ouvir então.");
+                		socket.close();
+                	}
+                    continue;
+                }
+                
+                if (inputLine == null) {
+                    // Cliente fechou a conexão
+                    break;
+                }
+                
                 outputLine = kkp.processInput(inputLine);
                 out.println(outputLine);
-                if (outputLine.equals("Tchau."))
-                	socket.close();
+                
+                if (outputLine.equals("Tchau.")) {
+                    socket.close();
+                    break;
+                }
             }
-            //vai fechar a conexao do cliente com servidor
+            
             socket.close();
         } catch (IOException e) {
             e.printStackTrace();
