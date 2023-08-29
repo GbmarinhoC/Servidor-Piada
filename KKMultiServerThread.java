@@ -18,7 +18,7 @@ public class KKMultiServerThread extends Thread {
         ) {
             String outputLine;
             KnockKnockProtocol kkp = new KnockKnockProtocol();
-            int verifica = 0;
+            int verification = 0;
             outputLine = kkp.processInput(null);
             out.println(outputLine);
 
@@ -30,9 +30,9 @@ public class KKMultiServerThread extends Thread {
                 try {
                     inputLine = in.readLine();
                 } catch (SocketTimeoutException timeoutException) {
-                	if(verifica < 2 ) {
+                	if(verification < 2 ) {
                 		out.println("Tem como você responder? estou tentando fazer a porra de uma piada!!");
-                		verifica++;
+                		verification++;
                 	}else {
                 		out.println("Parece que voce não quer ouvir uma piada :(");
                 		out.println("Vamos deixar outro entrar para ouvir então.");
